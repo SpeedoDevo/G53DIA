@@ -1,0 +1,244 @@
+Index: src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/Refuel.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/Refuel.java	(date 1458313849000)
++++ src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/Refuel.java	(revision )
+@@ -1,7 +1,7 @@
+ package uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.action;
+ 
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.MegaTanker;
+-import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.Beliefs;
++import uk.ac.nott.cs.g53dia.multidemo.tanker.beliefs.Beliefs;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.Position;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.state.FutureState;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.state.State;
+Index: src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/Planner.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/Planner.java	(date 1458313849000)
++++ src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/Planner.java	(revision )
+@@ -1,78 +1,21 @@
+ package uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner;
+ 
+ import java.util.ArrayDeque;
+-import java.util.ArrayList;
+-import java.util.PriorityQueue;
+ import java.util.Queue;
+-import java.util.Set;
+-import java.util.TreeSet;
+ 
+-import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.Beliefs;
++import uk.ac.nott.cs.g53dia.multidemo.tanker.beliefs.Beliefs;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.action.Action;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.state.FutureState;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.state.GoalState;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.state.State;
+ 
+ /**
+- * Planning with a*
++ * Planning with BFS
+  * Created by Barnabas on 17/02/2016.
+  */
+ public class Planner {
+ 
+     private Planner() {
+-    }
+-
+-    /**
+-     * Initial implementation of A*, not working.
+-     *
+-     * @param beliefs beliefs
+-     * @param start   start state
+-     * @param goal    goal state
+-     * @return list of high level actions
+-     */
+-    static ArrayDeque<Action> planAStar(Beliefs beliefs, State start, GoalState goal) {
+-        PriorityQueue<State> open = new PriorityQueue<>();
+-        open.add(start);
+-        Set<State> closed = new TreeSet<>((l, r) -> {
+-            int c = l.pos.compareTo(r.pos);
+-            if (c == 0) {
+-                return Double.compare(l.score(), r.score());
+-            } else {
+-                return c;
+-            }
+-        });
+-
+-        while (!open.isEmpty()) {
+-            State current = open.poll();
+-            closed.add(current);
+-
+-            if (goal.matches(start, current)) {
+-                return makeActionList(new ArrayDeque<>(), current);
+-            } else {
+-                ArrayList<FutureState> children = current.expand(beliefs);
+-                for (State child : children) {
+-                    if (closed.contains(child)) {
+-                        continue;
+-                    }
+-
+-                    if (open.contains(child)) {
+-                        State oldChild = null;
+-                        for (State s : open) {
+-                            if (s.equals(child)) {
+-                                oldChild = s;
+-                            }
+-                        }
+-                        if (oldChild != null && oldChild.score() < child.score()) {
+-                            open.remove(oldChild);
+-                            open.add(child);
+-                        }
+-                    } else {
+-                        open.add(child);
+-                    }
+-                }
+-            }
+-        }
+-        return null;
+     }
+ 
+     /**
+Index: src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/CompleteTask.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/CompleteTask.java	(date 1458313849000)
++++ src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/CompleteTask.java	(revision )
+@@ -3,7 +3,7 @@
+ import java.util.Arrays;
+ 
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.MegaTanker;
+-import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.Beliefs;
++import uk.ac.nott.cs.g53dia.multidemo.tanker.beliefs.Beliefs;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.PlannableTask;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.state.FutureState;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.state.State;
+Index: src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/Action.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/Action.java	(date 1458313849000)
++++ src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/Action.java	(revision )
+@@ -1,7 +1,7 @@
+ package uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.action;
+ 
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.MegaTanker;
+-import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.Beliefs;
++import uk.ac.nott.cs.g53dia.multidemo.tanker.beliefs.Beliefs;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.Position;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.state.FutureState;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.state.State;
+Index: src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/state/State.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/state/State.java	(date 1458313849000)
++++ src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/state/State.java	(revision )
+@@ -4,7 +4,7 @@
+ import java.util.Collection;
+ import java.util.Map;
+ 
+-import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.Beliefs;
++import uk.ac.nott.cs.g53dia.multidemo.tanker.beliefs.Beliefs;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.Position;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.PlannableTask;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.action.CompleteTask;
+Index: src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/EmptyTank.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/EmptyTank.java	(date 1458313849000)
++++ src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/EmptyTank.java	(revision )
+@@ -1,7 +1,7 @@
+ package uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.action;
+ 
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.MegaTanker;
+-import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.Beliefs;
++import uk.ac.nott.cs.g53dia.multidemo.tanker.beliefs.Beliefs;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.Position;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.PlannableTask;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.state.FutureState;
+Index: src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/Deliberative.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/Deliberative.java	(date 1458313849000)
++++ src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/Deliberative.java	(revision )
+@@ -3,6 +3,7 @@
+ import java.util.ArrayDeque;
+ 
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.MegaTanker;
++import uk.ac.nott.cs.g53dia.multidemo.tanker.beliefs.Beliefs;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.PlannableTask;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.Planner;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.action.Action;
+Index: src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/Beliefs.java
+===================================================================
+--- src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/Beliefs.java	(date 1458313849000)
++++ src/uk/ac/nott/cs/g53dia/multidemo/tanker/beliefs/Beliefs.java	(revision )
+@@ -1,10 +1,11 @@
+-package uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative;
++package uk.ac.nott.cs.g53dia.multidemo.tanker.beliefs;
+ 
+ import java.util.HashMap;
+ import java.util.LinkedHashMap;
+ import java.util.Map;
+ import java.util.PriorityQueue;
+ 
++import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.Position;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.PlannableTask;
+ import uk.ac.nott.cs.g53dia.multilibrary.Cell;
+ import uk.ac.nott.cs.g53dia.multilibrary.EmptyCell;
+@@ -19,9 +20,9 @@
+     /**
+      * Collection of all cells, for debugging purposes.
+      */
+-    Map<Position, Cell> discovered = new HashMap<>();
+-    Position minDiscovered = new Position(0, 0);
+-    Position maxDiscovered = new Position(0, 0);
++    public Map<Position, Cell> discovered = new HashMap<>();
++    public Position minDiscovered = new Position(0, 0);
++    public Position maxDiscovered = new Position(0, 0);
+ 
+ 
+     public Map<Position, Well> wells = new HashMap<>();
+Index: src/uk/ac/nott/cs/g53dia/multidemo/fleet/BeliefServer.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/uk/ac/nott/cs/g53dia/multidemo/fleet/BeliefServer.java	(revision )
++++ src/uk/ac/nott/cs/g53dia/multidemo/fleet/BeliefServer.java	(revision )
+@@ -0,0 +1,7 @@
++package uk.ac.nott.cs.g53dia.multidemo.fleet;
++
++/**
++ * Created by Barnabas on 18/03/2016.
++ */
++public class BeliefServer {
++}
+Index: src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/FillTank.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/FillTank.java	(date 1458313849000)
++++ src/uk/ac/nott/cs/g53dia/multidemo/tanker/deliberative/planner/action/FillTank.java	(revision )
+@@ -3,7 +3,7 @@
+ import java.util.Map;
+ 
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.MegaTanker;
+-import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.Beliefs;
++import uk.ac.nott.cs.g53dia.multidemo.tanker.beliefs.Beliefs;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.Position;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.state.FutureState;
+ import uk.ac.nott.cs.g53dia.multidemo.tanker.deliberative.planner.state.State;
